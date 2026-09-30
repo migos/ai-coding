@@ -3,12 +3,16 @@
 This repository follows documented Android engineering standards intended for both humans and coding agents.
 
 The documentation defines:
-- architecture;
-- dependency direction;
-- file placement;
-- reference implementations;
-- known pitfalls;
-- project-specific decisions and exceptions.
+
+- Architecture
+- Dependency direction
+- Navigation
+- Persistence
+- State ownership
+- File placement
+- Reference implementations
+- Known pitfalls
+- Project-specific decisions and exceptions
 
 ## Mandatory first step
 
@@ -38,6 +42,25 @@ When instructions conflict, use this order:
 
 The more specific rule wins.
 
+## Quality baseline
+
+The active architecture profile controls physical project structure. It does not reduce the technical quality baseline.
+
+Choose the simplest implementation that satisfies the documented requirements for:
+
+- Architecture
+- Navigation
+- Persistence
+- Lifecycle handling
+- State restoration
+- Concurrency
+- Error handling
+- Testing
+
+Do not choose an implementation solely because it requires less code.
+
+Application size must not be used as justification for ad-hoc navigation, inappropriate persistence, unsafe state handling, or incorrect concurrency behavior.
+
 ## Implementation workflow
 
 Before writing code:
@@ -48,6 +71,7 @@ Before writing code:
 4. Confirm file placement.
 5. Reuse existing abstractions where appropriate.
 6. Prefer established project patterns over introducing new ones.
+7. Select APIs and technologies according to the documented requirements rather than implementation convenience.
 
 During implementation:
 
@@ -58,6 +82,8 @@ During implementation:
 5. Add or update tests when behavior changes.
 6. Avoid adding libraries unless necessary.
 7. Do not introduce architectural layers or Gradle modules without a concrete reason.
+8. Do not replace established platform solutions with ad-hoc state, navigation, or persistence mechanisms.
+9. Do not rely on UI behavior to guarantee data-layer correctness.
 
 After implementation:
 
@@ -66,58 +92,51 @@ After implementation:
 3. Run formatting and static analysis if configured.
 4. Verify file placement against the active architecture profile.
 5. Verify documented dependency rules.
-6. Report intentional deviations.
+6. Verify navigation behavior when destinations were added or changed.
+7. Verify persistence choices when durable data was introduced or changed.
+8. Verify required state restoration behavior.
+9. Verify potentially unbounded UI content remains accessible.
+10. Verify exposed failures have an intentional presentation or handling path.
+11. Verify data mutations remain correct when multiple operations overlap.
+12. Report intentional deviations.
 
 ## Documentation map
 
-### Architecture
+```text
+docs/
+├── architecture/
+│   ├── architecture.md
+│   ├── simple.md
+│   ├── modular.md
+│   ├── dependency-rules.md
+│   └── migration-simple-to-modular.md
+│
+├── navigation/
+│   └── navigation.md
+│
+├── ui/
+│   ├── screen.md
+│   ├── viewmodel.md
+│   └── ui-state.md
+│
+├── data/
+│   ├── persistence.md
+│   ├── repository.md
+│   ├── room-dao.md
+│   └── room-database.md
+│
+├── async/
+│   ├── coroutines.md
+│   └── flow.md
+│
+├── testing/
+│   └── testing.md
+│
+├── documentation/
+│   └── guideline-format.md
+│
+└── project/
+    ├── decisions.md
+    └── exceptions.md
+```
 
-- `docs/architecture/architecture.md`
-- `docs/architecture/simple.md`
-- `docs/architecture/modular.md`
-- `docs/architecture/dependency-rules.md`
-- `docs/architecture/migration-simple-to-modular.md`
-
-### Documentation rules
-
-- `docs/documentation/guideline-format.md`
-
-### UI
-
-- `docs/ui/screen.md`
-- `docs/ui/viewmodel.md`
-- `docs/ui/ui-state.md`
-
-### Data
-
-- `docs/data/repository.md`
-- `docs/data/room-dao.md`
-- `docs/data/room-database.md`
-
-### Async
-
-- `docs/async/coroutines.md`
-- `docs/async/flow.md`
-
-### Testing
-
-- `docs/testing/testing.md`
-
-### Project configuration
-
-- `docs/project/decisions.md`
-- `docs/project/exceptions.md`
-
-## Guideline format
-
-Engineering guideline files generally use:
-
-1. **Description**
-2. **Rules**
-3. **Placement**
-4. **Code**
-5. **Gotchas**
-
-Every concrete source file shown in a `Placement` tree must have a corresponding implementation in the `Code` section of the same guideline.
-
-Reference code is normative unless overridden by a project-specific decision or exception.

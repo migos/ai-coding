@@ -6,21 +6,31 @@ The Simple Architecture profile is intended for small to medium Android applicat
 
 Architectural boundaries are represented primarily through packages inside the application module.
 
+The goal is to keep physical project structure simple while preserving clear ownership, dependency direction, and a migration path toward the Modular Architecture profile.
+
+Simple Architecture simplifies structure, not engineering requirements.
+
 ## Rules
 
 - Keep feature-specific code inside the feature package.
 - Prefer package boundaries over Gradle modules.
-- Do not create separate Gradle modules for individual layers.
+- Do not create separate Gradle modules for individual architectural layers.
 - Add a domain package only when it contains meaningful business logic or abstraction.
 - Prefer feature-local models until they are genuinely shared.
-- UI must not access DAOs or network clients directly.
-- Database entities and network DTOs must not be exposed to UI.
-- Shared infrastructure may live outside feature packages when multiple features genuinely use it.
-- Avoid generic `common` or `utils` packages.
+- UI must not directly access database or network implementations.
+- Persistence and transport models must not leak into UI.
+- Shared infrastructure may live outside feature packages when multiple features genuinely depend on it.
+- Avoid generic `common`, `shared`, or `utils` packages without clear ownership.
+- Use the documented navigation solution for independent application destinations.
+- Select persistence based on data characteristics and access requirements, not application size.
+- Use appropriate state restoration when temporary user state should survive recreation.
+- Ensure potentially unbounded UI content remains accessible.
+- Data-layer correctness must not depend on UI-level prevention of duplicate actions.
+- Concurrency, lifecycle, error handling, persistence, and testing requirements are the same as in the Modular Architecture profile.
 
 ## Placement
 
-Recommended package-level shape:
+Recommended package-level structure:
 
 ```text
 app/
@@ -31,34 +41,25 @@ app/
     │       ├── data/
     │       ├── model/
     │       └── domain/      # only when needed
+    ├── navigation/
     ├── database/
     ├── network/
     └── di/
 ```
 
-This tree intentionally shows directories only. Concrete files are defined by the individual implementation guidelines.
+A feature should contain only the packages it actually needs.
 
-## Code
+For example, a feature without domain-specific business logic does not need a `domain/` package.
 
-Conceptual feature dependency direction:
-
-```text
-ui
- │
- ├──────► domain
- │          │
- │          ▼
- └──────► repository abstraction
-               ▲
-               │ implemented by
-               │
-              data
-```
+Code should remain feature-local until moving it creates a concrete benefit such as reuse, ownership, dependency isolation, or clearer responsibility.
 
 ## Gotchas
 
-- Do not create empty packages merely for symmetry.
-- Do not create repository interfaces just because every feature is expected to have one.
-- Do not move code into shared packages before there is an actual shared need.
+- Do not create empty packages merely for architectural symmetry.
+- Do not create abstractions only because they may become useful later.
+- Do not move code into shared packages before there is a genuine shared responsibility.
 - Do not introduce Gradle modules prematurely.
-- Simple architecture does not remove dependency rules.
+- Do not interpret `simple` as permission to use ad-hoc navigation or persistence.
+- Do not replace established Android solutions with custom state machines solely to reduce code.
+- A small application may still require Navigation, Room, DataStore, saved state, transactions, and concurrency control.
+- Preserve logical boundaries even when Gradle does not enforce them.
