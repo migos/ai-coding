@@ -2,9 +2,7 @@
 
 ## Description
 
-This file records intentional deviations from the active architecture profile or shared engineering guidelines.
-
-Exceptions should be rare, scoped, and explicit.
+Record rare, scoped deviations from active standards. The code block is an example entry, not an active exception.
 
 ## Rules
 
@@ -14,18 +12,7 @@ Exceptions should be rare, scoped, and explicit.
 - Do not use exceptions to legitimize accidental inconsistency.
 - An exception overrides only the stated rule and scope.
 
-## Placement
-
-```text
-docs/project/
-└── exceptions.md
-```
-
-This is a documentation file and does not create Android source code.
-
 ## Code
-
-Example exception:
 
 ```md
 ## Legacy integration
@@ -52,3 +39,8 @@ Remove this exception when the integration is replaced.
 - Exceptions without scope become accidental global rules.
 - Do not create an exception before checking whether the normal architecture can support the requirement.
 - Review and remove obsolete exceptions.
+
+## References
+
+- [Project decisions](decisions.md)
+- [Project setup](setup.md)

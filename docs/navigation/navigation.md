@@ -2,13 +2,7 @@
 
 ## Description
 
-Navigation represents movement between independent application destinations.
-
-Navigation 3 is the default navigation solution for Compose applications using these standards.
-
-Navigation state is modeled as a back stack of typed navigation keys. The application owns this back stack and `NavDisplay` resolves its entries into destination content.
-
-Navigation state must remain separate from ordinary screen UI state.
+Navigation 3 renders typed, saveable keys independently of screen UI state. The complete reference connects a root list and detail using an injected repository and entry-owned ViewModels.
 
 ## Rules
 
@@ -26,17 +20,24 @@ Navigation state must remain separate from ordinary screen UI state.
 - Prefer stable identifiers over passing complete domain objects through navigation.
 - Screens receive navigation callbacks instead of directly owning the navigation stack.
 - Navigation decisions that depend purely on user interaction belong at the navigation boundary.
-- Prevent accidental duplicate navigation when an interaction can fire repeatedly.
-
-A UI element should normally be modeled as an independent destination when one or more of the following apply:
-
+- Guard navigation against stale callbacks from hidden/transitioning entries and repeated interactions.
+- Lifecycle gating and stack identity/deduplication are separate concerns.
+- Scope screen ViewModels to their back-stack entry using the Navigation 3 ViewModel decorator, after the saveable-state decorator.
+- Popping an entry clears its ViewModels; hiding an entry does not.
+- Use owner-aware ViewModel factories/creation extras for `SavedStateHandle`.
+- Navigation 3 arguments are passed explicitly from the key; they are not automatically injected into the handle.
+- Preserve the root entry for in-app back actions.
+- Let the platform handle leaving the app at the root; do not empty the stack.
+- Define key identity deliberately.
+- If multiple instances of the same logical destination/arguments are allowed on the stack, add a serializable unique instance ID so entry-owned state is not unintentionally shared.
+- Handle operation-dependent navigation through acknowledged state/results according to UI Events and Effects.
 - The user expects system back to return to the previous UI.
 - It represents a distinct navigation step or user task.
 - It requires its own navigation arguments.
 - It can be opened independently from another destination.
 - It has a meaningful identity in the application's back stack.
-
-Reusable or subordinate UI that does not require navigation identity should remain part of its owning destination.
+- The application composition root supplies the repository contract.
+- For nested/multiple stacks or deep links, define entry identity, root/back behavior, restoration, and input validation.
 
 ## Placement
 
@@ -55,8 +56,6 @@ app/src/main/java/<base-package>/navigation/
 ├── AppRoute.kt
 └── AppNavigation.kt
 ```
-
-Feature modules expose destination content and navigation callbacks. The application-level navigation host composes these destinations into the application back stack.
 
 ## Code
 
@@ -87,40 +86,64 @@ sealed interface AppRoute : NavKey {
 package com.example.app.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.dropUnlessResumed
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.example.app.feature.example.data.ExampleRepository
+import com.example.app.feature.example.ui.ExampleDetailScreen
+import com.example.app.feature.example.ui.ExampleScreen
+import com.example.app.feature.example.ui.ExampleViewModel
 
 @Composable
-fun AppNavigation() {
-    val backStack = rememberNavBackStack(
-        AppRoute.Start,
-    )
+fun AppNavigation(repository: ExampleRepository) {
+    val backStack = rememberNavBackStack(AppRoute.Start)
 
     NavDisplay(
         backStack = backStack,
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
         onBack = {
-            backStack.removeLastOrNull()
+            if (backStack.size > 1) backStack.removeLastOrNull()
         },
         entryProvider = entryProvider {
             entry<AppRoute.Start> {
-                StartScreen(
-                    onOpenDestination = dropUnlessResumed { id ->
-                        backStack.add(
-                            AppRoute.Destination(
-                                id = id,
-                            ),
-                        )
+                val lifecycle = LocalLifecycleOwner.current.lifecycle
+                val model: ExampleViewModel = viewModel(
+                    factory = ExampleViewModel.factory(repository),
+                )
+                ExampleScreen(
+                    viewModel = model,
+                    onItemClick = { id ->
+                        val destination = AppRoute.Destination(id)
+                        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+                            backStack.lastOrNull() == AppRoute.Start &&
+                            backStack.lastOrNull() != destination
+                        ) {
+                            backStack.add(destination)
+                        }
                     },
                 )
             }
-
             entry<AppRoute.Destination> { route ->
-                DestinationScreen(
-                    id = route.id,
+                val lifecycle = LocalLifecycleOwner.current.lifecycle
+                val model: ExampleViewModel = viewModel(
+                    factory = ExampleViewModel.factory(repository, itemId = route.id),
+                )
+                ExampleDetailScreen(
+                    viewModel = model,
                     onBack = {
-                        backStack.removeLastOrNull()
+                        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+                            backStack.lastOrNull() == route && backStack.size > 1
+                        ) {
+                            backStack.removeLastOrNull()
+                        }
                     },
                 )
             }
@@ -138,3 +161,11 @@ fun AppNavigation() {
 - Do not create a destination for every composable.
 - Do not allow repeated click events to unintentionally push the same destination multiple times.
 - Navigation state restoration depends on navigation keys being saveable when using a persistent back stack.
+
+## References
+
+- [UI Events and Effects](../ui/events-and-effects.md)
+- [Screen](../ui/screen.md)
+- [ViewModel](../ui/viewmodel.md)
+- [Project Setup](../project/setup.md)
+- [Navigation 3 saved state and ViewModel scoping](https://developer.android.com/guide/navigation/navigation-3/save-state)

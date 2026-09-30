@@ -2,13 +2,7 @@
 
 ## Description
 
-The Simple Architecture profile is intended for small to medium Android applications that do not require extensive Gradle modularization.
-
-Architectural boundaries are represented primarily through packages inside the application module.
-
-The goal is to keep physical project structure simple while preserving clear ownership, dependency direction, and a migration path toward the Modular Architecture profile.
-
-Simple Architecture simplifies structure, not engineering requirements.
+Use package boundaries inside `:app` for small to medium applications. Keep ownership and dependency direction explicit; this profile simplifies structure, not correctness requirements.
 
 ## Rules
 
@@ -27,10 +21,10 @@ Simple Architecture simplifies structure, not engineering requirements.
 - Ensure potentially unbounded UI content remains accessible.
 - Data-layer correctness must not depend on UI-level prevention of duplicate actions.
 - Concurrency, lifecycle, error handling, persistence, and testing requirements are the same as in the Modular Architecture profile.
+- Create only packages the feature needs.
+- Move feature-local code only for a concrete ownership, reuse, or isolation benefit.
 
 ## Placement
-
-Recommended package-level structure:
 
 ```text
 app/
@@ -47,12 +41,6 @@ app/
     └── di/
 ```
 
-A feature should contain only the packages it actually needs.
-
-For example, a feature without domain-specific business logic does not need a `domain/` package.
-
-Code should remain feature-local until moving it creates a concrete benefit such as reuse, ownership, dependency isolation, or clearer responsibility.
-
 ## Gotchas
 
 - Do not create empty packages merely for architectural symmetry.
@@ -63,3 +51,9 @@ Code should remain feature-local until moving it creates a concrete benefit such
 - Do not replace established Android solutions with custom state machines solely to reduce code.
 - A small application may still require Navigation, Room, DataStore, saved state, transactions, and concurrency control.
 - Preserve logical boundaries even when Gradle does not enforce them.
+
+## References
+
+- [Dependency rules](dependency-rules.md)
+- [Navigation](../navigation/navigation.md)
+- [Persistence](../data/persistence.md)

@@ -2,11 +2,7 @@
 
 ## Description
 
-UI state is the immutable representation required to render a screen at a point in time.
-
-The same state should produce the same UI.
-
-UI state belongs to the screen or destination that consumes it. Navigation state, persistence state, and unrelated destination state should not be mixed into the same UI state.
+UI state is an immutable snapshot for one destination. The complete reference is shared by the ViewModel, screens, and tests.
 
 ## Rules
 
@@ -45,10 +41,13 @@ feature/example/src/main/java/<base-package>/feature/example/ui/
 ### `ExampleUiState.kt`
 
 ```kotlin
+package com.example.app.feature.example.ui
+
 data class ExampleUiState(
     val isLoading: Boolean = true,
     val items: List<ExampleItemUiModel> = emptyList(),
-    val errorMessage: String? = null,
+    val query: String = "",
+    val error: ExampleUiError? = null,
 )
 
 data class ExampleItemUiModel(
@@ -56,8 +55,11 @@ data class ExampleItemUiModel(
     val label: String,
 )
 
+enum class ExampleUiError { LoadFailed }
+
 sealed interface ExampleEvent {
     data object Retry : ExampleEvent
+    data class QueryChanged(val query: String) : ExampleEvent
 }
 ```
 
@@ -68,5 +70,12 @@ sealed interface ExampleEvent {
 - Multiple booleans can create impossible state combinations; use a more explicit state model when necessary.
 - Do not expose mutable collections.
 - Avoid storing values that are cheap and deterministic to derive.
-- Keep transient effects separate when they are not part of renderable state.
+- Important pending operation results remain state until acknowledged; the owning screen performs UI effects according to UI Events and Effects.
 - Do not use UI state as durable application storage.
+
+## References
+
+- [ViewModel](viewmodel.md)
+- [Screen](screen.md)
+- [Testing](../testing/testing.md)
+- [UI Events and Effects](events-and-effects.md)

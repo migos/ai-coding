@@ -2,9 +2,7 @@
 
 ## Description
 
-A DAO defines access to persisted Room data.
-
-DAOs are implementation details of the database boundary.
+DAOs own Room queries and mutations inside the database boundary. The complete references are consumed by the repository and registered by the database.
 
 ## Rules
 
@@ -14,6 +12,7 @@ DAOs are implementation details of the database boundary.
 - Use `@Transaction` when multiple database operations must be atomic.
 - Keep SQL readable and narrowly scoped.
 - DAOs must not be accessed directly from ViewModels or composables.
+- Adapt Simple-profile packages and imports together when using Modular placement.
 
 ## Placement
 
@@ -38,12 +37,14 @@ core/database/src/main/java/<base-package>/core/database/example/
 ### `ExampleEntity.kt`
 
 ```kotlin
-@Entity(
-    tableName = "examples",
-)
+package com.example.app.feature.example.data
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "examples")
 data class ExampleEntity(
-    @PrimaryKey
-    val id: String,
+    @PrimaryKey val id: String,
     val value: String,
 )
 ```
@@ -51,39 +52,36 @@ data class ExampleEntity(
 ### `ExampleDao.kt`
 
 ```kotlin
+package com.example.app.feature.example.data
+
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Upsert
+import kotlinx.coroutines.flow.Flow
+
 @Dao
 interface ExampleDao {
-
-    @Query(
-        """
-        SELECT *
-        FROM examples
-        ORDER BY value
-        """
-    )
+    @Query("SELECT * FROM examples ORDER BY value, id")
     fun observeAll(): Flow<List<ExampleEntity>>
 
-    @Query(
-        """
-        SELECT *
-        FROM examples
-        ORDER BY value
-        """
-    )
+    @Query("SELECT * FROM examples ORDER BY value, id")
     suspend fun getAll(): List<ExampleEntity>
 
     @Upsert
-    suspend fun upsertAll(
-        entities: List<ExampleEntity>,
-    )
+    suspend fun upsert(entity: ExampleEntity)
+
+    @Upsert
+    suspend fun upsertAll(entities: List<ExampleEntity>)
+
+    @Query("DELETE FROM examples WHERE id = :itemId")
+    suspend fun deleteById(itemId: String)
 
     @Query("DELETE FROM examples")
     suspend fun deleteAll()
 
     @Transaction
-    suspend fun replaceAll(
-        entities: List<ExampleEntity>,
-    ) {
+    suspend fun replaceAll(entities: List<ExampleEntity>) {
         deleteAll()
         upsertAll(entities)
     }
@@ -96,3 +94,8 @@ interface ExampleDao {
 - Never access a DAO directly from a ViewModel.
 - `@Transaction` guarantees database atomicity, not coroutine dispatcher behavior.
 - Broad observable queries can cause unnecessary invalidations.
+
+## References
+
+- [Repository](repository.md)
+- [Room Database](room-database.md)

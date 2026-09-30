@@ -2,17 +2,24 @@
 
 ## Description
 
-Persistence technology must be selected based on the characteristics and access patterns of the data.
-
-Application size is not a persistence requirement.
-
-Use the simplest persistence mechanism that correctly supports the required durability, structure, update semantics, querying, concurrency, and data volume.
-
-Saved UI state and durable application persistence serve different purposes and must not be treated as interchangeable.
+Select storage by durability, structure, access patterns, atomicity, and expected volume. Saved UI state supports restoration, not durable application storage. The code defines the model shared by the repository and UI examples.
 
 ## Rules
 
-Use the following defaults:
+- Do not use `SharedPreferences` for new persistence implementations.
+- Do not serialize collections of structured application records into a single preference value.
+- Use DataStore for preference-like data.
+- Use Room for structured data that behaves like records.
+- Use file storage for large binary content and store metadata separately when required.
+- Persistent application data must not rely on `remember`, `rememberSaveable`, or `SavedStateHandle`.
+- Saved state is intended for restoration, not durable persistence.
+- Choose storage before implementing repository mutations.
+- The model reference uses Simple-profile packages; adapt packages and imports together for Modular.
+- Prefer persistence mechanisms that provide the atomicity and transaction semantics required by the data.
+- Do not introduce custom synchronization merely to compensate for an unsuitable persistence mechanism.
+- Persistence decisions must remain valid as the amount of stored data grows within the expected scope of the feature.
+
+## Selection
 
 | Data characteristic | Preferred mechanism |
 |---|---|
@@ -25,67 +32,33 @@ Use the following defaults:
 | Small ViewModel-owned state that should survive recreation | `SavedStateHandle` |
 | Large files, images, documents, or binary content | File storage |
 
-Additional rules:
+## Placement
 
-- Do not use `SharedPreferences` for new persistence implementations.
-- Do not serialize collections of structured application records into a single preference value.
-- Use DataStore for preference-like data.
-- Use Room for structured data that behaves like records.
-- Use file storage for large binary content and store metadata separately when required.
-- Persistent application data must not rely on `remember`, `rememberSaveable`, or `SavedStateHandle`.
-- Saved state is intended for restoration, not durable persistence.
-- Choose the persistence mechanism before implementing repository mutation behavior.
-- Prefer persistence mechanisms that provide the atomicity and transaction semantics required by the data.
-- Do not introduce custom synchronization merely to compensate for an unsuitable persistence mechanism.
-- Persistence decisions must remain valid as the amount of stored data grows within the expected scope of the feature.
+### Simple profile
+
+```text
+app/src/main/java/<base-package>/feature/example/model/
+└── Example.kt
+```
+
+### Modular profile
+
+```text
+core/model/src/main/java/<base-package>/core/model/example/
+└── Example.kt
+```
 
 ## Code
 
-Use this decision process before implementing persistence:
+### `Example.kt`
 
-```text
-Is the data temporary UI state?
-│
-├── Yes
-│   ├── UI owns the state
-│   │   └── rememberSaveable
-│   │
-│   └── ViewModel owns the state
-│       └── SavedStateHandle
-│
-└── No
-    │
-    ├── Is it small preference-like data?
-    │   └── DataStore
-    │
-    ├── Is it structured record-based data?
-    │   └── Room
-    │
-    └── Is it large binary/file content?
-        └── File storage
-```
+```kotlin
+package com.example.app.feature.example.model
 
-Preference-like data typically has characteristics such as:
-
-```text
-- Small number of values
-- Configuration or user preferences
-- No relational structure
-- No record-level CRUD requirements
-- No complex querying requirements
-```
-
-Structured record data typically has characteristics such as:
-
-```text
-- Multiple records
-- Individual record identity
-- Create/update/delete behavior
-- Sorting or filtering
-- Search or querying
-- Relationships
-- Partial updates
-- Transactional requirements
+data class Example(
+    val id: String,
+    val value: String,
+)
 ```
 
 ## Gotchas
@@ -98,3 +71,9 @@ Structured record data typically has characteristics such as:
 - `SavedStateHandle` and `rememberSaveable` must not be used as durable application storage.
 - Do not choose persistence based on how little code an implementation requires.
 - Re-evaluate the persistence choice before adding increasingly complex workarounds around it.
+
+## References
+
+- [Repository](repository.md)
+- [Room DAO](room-dao.md)
+- [ViewModel](../ui/viewmodel.md)

@@ -2,9 +2,7 @@
 
 ## Description
 
-Migration from the Simple Architecture profile to the Modular Architecture profile must be incremental.
-
-The goal is to strengthen existing boundaries, not redesign the application unnecessarily.
+Migrate incrementally by extracting stable boundaries while preserving behavior. Strengthen dependency enforcement without redesigning unrelated code.
 
 ## Rules
 
@@ -15,53 +13,9 @@ The goal is to strengthen existing boundaries, not redesign the application unne
 - Do not combine broad refactoring with unrelated feature work.
 - Prefer moving stable boundaries before introducing new abstractions.
 - Update the active architecture profile only when the migration is actually complete enough to follow the Modular rules.
-
-## Placement
-
-Example progression:
-
-```text
-Step 0
-:app
-
-Step 1
-:app
-:core:model
-
-Step 2
-:app
-:core:model
-:core:database
-
-Step 3
-:app
-:core:model
-:core:database
-:core:data
-
-Step 4
-:app
-:feature:<feature-name>
-:core:model
-:core:database
-:core:data
-```
-
-These are module boundaries only. Concrete file moves must follow the relevant implementation guidelines.
-
-## Code
-
-Typical migration sequence:
-
-```text
-1. Identify an already-stable package boundary.
-2. Extract its shared dependencies first.
-3. Create the target Gradle module.
-4. Move the stable code without redesigning behavior.
-5. Fix dependencies so they follow the documented direction.
-6. Compile and test.
-7. Repeat for the next boundary only when useful.
-```
+- Identify a stable boundary and extract its dependencies first.
+- Move code without changing behavior.
+- Compile and test after each extraction.
 
 ## Gotchas
 
@@ -69,3 +23,9 @@ Typical migration sequence:
 - Do not move every model into `:core:model`.
 - Do not turn `:core:data` into a dumping ground.
 - Migration should reduce coupling, not merely increase file movement.
+
+## References
+
+- [Simple profile](simple.md)
+- [Modular profile](modular.md)
+- [Dependency rules](dependency-rules.md)

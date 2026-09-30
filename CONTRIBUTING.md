@@ -1,38 +1,38 @@
 # Contributing to Android Engineering Standards
 
-## Guideline Authoring
+This file defines how to maintain the standards. Application guidelines belong in `docs/`; authoring guidance stays here.
 
-Engineering guidelines should be small, focused, and directly usable by coding agents.
+## Rules
 
-Each guideline should document one implementation pattern, architectural rule, or closely related group of concerns.
+- Keep each guideline focused and reusable across applications.
+- Include `Description` and `Rules` when useful; omit empty sections.
+- Use short bullet points in `Rules` and `Gotchas`.
+- Keep `Description` concise; include only context needed to apply the pattern.
+- Add optional `Selection` for decision tables when several mechanisms are valid.
+- Use `Placement` only for concrete file, package, or module locations.
+- Put only paths/trees and profile headings in `Placement`; no explanatory prose.
+- Every concrete source/resource file in `Placement` must have a matching example in `Code`.
+- Put only fenced examples and identifying headings in `Code`; no explanatory prose.
+- Identify complete references versus illustrative fragments in `Description` or `Rules`.
+- Include packages, imports, and required resources in complete source references.
+- Put supporting documentation links in optional `References` as a bullet list.
+- Use generic examples and keep shared types consistent across guidelines.
+- Keep one source of truth per rule; reference related guidelines instead of duplicating them.
+- Preserve dependency direction across profiles and explain necessary package/import adaptations in `Rules`.
+- Record product-specific choices in project decisions or scoped exceptions.
+- Update the index and reading matrix in `docs/README.md` when guidelines change.
+- Keep this repository documentation-only; do not add validation scripts or generated projects.
 
-Shared standards must remain generic and reusable across applications.
+## Gotchas
 
-Examples exist to demonstrate technical patterns, not product-specific use cases.
+- Long explanations and duplicate examples reduce the usefulness of AI instructions.
+- Formatting changes must preserve correctness rules and example behavior.
+- Check local links, placement/example names, and profile consistency after documentation changes.
+- Compile changed source examples and test their behavior in a suitable external Android environment.
+- Report checks that ran and any validation limitations.
 
-### Rules
+## References
 
-- Use only the sections that add value to the guideline.
-- `Description` and `Rules` should normally be present.
-- Use `Placement` when the guideline defines where concrete source files belong.
-- Use `Code` when the guideline defines a concrete implementation pattern.
-- Use `Gotchas` when there are important pitfalls, edge cases, or commonly incorrect implementations.
-- Do not add empty or artificial sections only to satisfy a fixed document structure.
-- Every concrete source file shown in `Placement` must have a corresponding implementation in `Code`.
-- File names shown in `Placement` and `Code` must match exactly.
-- Code examples must be complete enough to demonstrate the documented pattern.
-- Do not show unrelated files merely to provide architectural context.
-- Reference another guideline when surrounding infrastructure is documented elsewhere.
-- Keep examples generic and domain-neutral.
-- Prefer names such as `Example`, `ExampleScreen`, `ExampleRepository`, and `ExampleEntity`.
-- Do not encode assumptions from a specific application into shared standards.
-- Generalize lessons from real projects into reusable engineering rules before adding them to shared documentation.
-- Avoid duplicating the same rule or boilerplate across multiple guidelines when one document can remain the source of truth.
-
-### Gotchas
-
-- A real project problem is evidence for improving a standard, not a template that should be copied into the standard.
-- Large placement trees usually indicate that a guideline is documenting too many responsibilities.
-- Product-specific examples can accidentally turn implementation details into perceived standards.
-- Duplicated boilerplate creates multiple sources of truth that can drift apart.
-- Mandatory sections with no meaningful content add noise and reduce the usefulness of the documentation.
+- [Project setup](docs/project/setup.md)
+- [Agent instructions](AGENTS.md)
+- [Engineering standards index](docs/README.md)

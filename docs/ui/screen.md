@@ -2,11 +2,7 @@
 
 ## Description
 
-A screen composable is the UI entry point for a navigation destination.
-
-It connects observable state and event callbacks to presentation UI.
-
-Independent navigation destinations should have independent top-level screen composables.
+Screens connect destination state and callbacks to reusable presentation content. The complete references use Simple-profile packages and resources; Navigation creates their entry-owned ViewModels.
 
 ## Rules
 
@@ -20,6 +16,7 @@ Independent navigation destinations should have independent top-level screen com
 - Independent navigation destinations must not be implemented as UI-state branches inside another screen.
 - Content that can exceed the available viewport must be scrollable.
 - Use lazy containers for potentially large collections.
+- In a modular feature, import its generated `R` rather than the app module's `R`.
 
 ## Placement
 
@@ -27,14 +24,26 @@ Independent navigation destinations should have independent top-level screen com
 
 ```text
 app/src/main/java/<base-package>/feature/example/ui/
-└── ExampleScreen.kt
+├── ExampleScreen.kt
+└── ExampleDetailScreen.kt
+```
+
+```text
+app/src/main/res/values/
+└── strings.xml
 ```
 
 ### Modular profile
 
 ```text
 feature/example/src/main/java/<base-package>/feature/example/ui/
-└── ExampleScreen.kt
+├── ExampleScreen.kt
+└── ExampleDetailScreen.kt
+```
+
+```text
+feature/example/src/main/res/values/
+└── strings.xml
 ```
 
 ## Code
@@ -42,56 +51,118 @@ feature/example/src/main/java/<base-package>/feature/example/ui/
 ### `ExampleScreen.kt`
 
 ```kotlin
+package com.example.app.feature.example.ui
+
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.app.R
+
 @Composable
 fun ExampleScreen(
     viewModel: ExampleViewModel,
     onItemClick: (String) -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    ExampleContent(
-        state = state,
-        onEvent = viewModel::onEvent,
-        onItemClick = onItemClick,
-    )
+    ExampleContent(state, viewModel::onEvent, onItemClick = onItemClick)
 }
 
 @Composable
-private fun ExampleContent(
+internal fun ExampleContent(
     state: ExampleUiState,
     onEvent: (ExampleEvent) -> Unit,
-    onItemClick: (String) -> Unit,
+    onItemClick: ((String) -> Unit)? = null,
+    onBack: (() -> Unit)? = null,
 ) {
-    when {
-        state.isLoading -> CircularProgressIndicator()
-
-        state.errorMessage != null -> {
-            Column {
-                Text(text = state.errorMessage)
-                Button(
-                    onClick = { onEvent(ExampleEvent.Retry) },
-                ) {
-                    Text("Retry")
+    Scaffold { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+                .padding(padding)
+                .consumeWindowInsets(padding)
+                .imePadding(),
+        ) {
+            if (onBack != null) {
+                item(key = "back") {
+                    TextButton(onClick = onBack) { Text(stringResource(R.string.example_back)) }
                 }
             }
-        }
-
-        else -> {
-            LazyColumn {
-                items(
-                    items = state.items,
-                    key = { it.id },
-                ) { item ->
-                    TextButton(
-                        onClick = { onItemClick(item.id) },
-                    ) {
+            item(key = "query") {
+                TextField(
+                    value = state.query,
+                    onValueChange = { onEvent(ExampleEvent.QueryChanged(it)) },
+                    label = { Text(stringResource(R.string.example_filter)) },
+                )
+            }
+            when {
+                state.isLoading -> item(key = "loading") { CircularProgressIndicator() }
+                state.error != null -> {
+                    item(key = "error") {
+                        val message = when (state.error) {
+                            ExampleUiError.LoadFailed -> R.string.example_load_failed
+                        }
+                        Text(stringResource(message))
+                    }
+                    item(key = "retry") {
+                        TextButton(onClick = { onEvent(ExampleEvent.Retry) }) {
+                            Text(stringResource(R.string.example_retry))
+                        }
+                    }
+                }
+                state.items.isEmpty() -> item(key = "empty") {
+                    Text(stringResource(R.string.example_empty))
+                }
+                else -> items(state.items, key = { "record:${it.id}" }) { item ->
+                    if (onItemClick == null) {
                         Text(item.label)
+                    } else {
+                        TextButton(onClick = { onItemClick(item.id) }) { Text(item.label) }
                     }
                 }
             }
         }
     }
 }
+```
+
+### `ExampleDetailScreen.kt`
+
+```kotlin
+package com.example.app.feature.example.ui
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
+@Composable
+fun ExampleDetailScreen(viewModel: ExampleViewModel, onBack: () -> Unit) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ExampleContent(state, viewModel::onEvent, onBack = onBack)
+}
+```
+
+### `strings.xml`
+
+```xml
+<resources>
+    <string name="example_back">Back</string>
+    <string name="example_filter">Filter</string>
+    <string name="example_load_failed">Unable to load data</string>
+    <string name="example_retry">Retry</string>
+    <string name="example_empty">No matching items</string>
+</resources>
 ```
 
 ## Gotchas
@@ -104,3 +175,9 @@ private fun ExampleContent(
 - Do not assume content fits because sample or test data is short.
 - Use `LazyColumn` or another lazy container for potentially large collections.
 - Use a scrollable container for non-list content that may exceed the viewport.
+
+## References
+
+- [ViewModel](viewmodel.md)
+- [UI State](ui-state.md)
+- [UI Baseline](ui-baseline.md)

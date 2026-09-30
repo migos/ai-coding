@@ -1,69 +1,33 @@
 # Project Decisions
 
-## Description
+This file contains active decisions. Copyable authoring guidance belongs in Project Setup, not among active entries.
 
-This file records project-specific technical decisions that affect future implementation.
-
-The template defaults to the Simple Architecture profile.
-
-## Rules
-
-- Record only decisions that materially affect future implementation.
-- Keep entries concise.
-- Update superseded decisions instead of keeping contradictory active rules.
-- Do not use this file as a changelog.
-- Change the architecture profile only intentionally.
-
-## Placement
-
-```text
-docs/project/
-└── decisions.md
-```
-
-This is a documentation file and does not create Android source code.
-
-## Code
-
-Default architecture decision:
-
-```md
 ## Architecture Profile
 
-Decision:
+Decision: `simple`
 
-`simple`
+Allowed values: `simple`, `modular`.
 
-Allowed values:
+Rationale: Start with package boundaries and add Gradle boundaries only when they provide a concrete benefit.
 
-- `simple`
-- `modular`
+## Language and UI
 
-Rationale:
+Decision: Kotlin and Jetpack Compose.
 
-Use the smallest architecture that preserves clear dependency and ownership boundaries.
-```
+Rationale: These shared reference patterns target Kotlin/Compose Android applications. Other UI stacks require an explicit project decision and applicable replacement guidance.
 
-Template for additional decisions:
+## Navigation
 
-```md
-## <Decision Name>
+Decision: Navigation 3 for multiple independent Compose destinations.
 
-Decision:
+Rationale: Use typed, saveable back-stack keys and entry-owned state according to Navigation.
 
-<decision>
+## Template adoption status
 
-Rationale:
+This repository contains engineering documentation, not an initialized Android application. Toolchain versions, SDK levels, DI choice, build variants, and verification commands must be recorded when adopting it; follow Project Setup. Do not treat this paragraph as completed application setup.
 
-<short reason>
+## References
 
-Affected areas:
-
-- <area>
-```
-
-## Gotchas
-
-- A preference is not automatically a project decision.
-- Temporary implementation details usually do not belong here.
-- Changing the architecture profile changes placement expectations across the project.
+- [Project Setup](setup.md)
+- [Navigation](../navigation/navigation.md)
+- [Project Setup](setup.md)

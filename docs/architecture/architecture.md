@@ -2,16 +2,7 @@
 
 ## Description
 
-Every project uses one of two supported architecture profiles:
-
-- **Simple Architecture**
-- **Modular Architecture**
-
-Both profiles follow the same conceptual dependency rules. They differ mainly in how architectural boundaries are physically represented.
-
-Architectural layers are logical boundaries. A logical boundary does not automatically require a Gradle module.
-
-The selected architecture profile affects project structure and dependency enforcement. It does not change the technical quality baseline of the application.
+Both supported profiles use the same logical dependency rules and quality baseline. Simple uses package boundaries; Modular adds Gradle boundaries when useful.
 
 ## Rules
 
@@ -38,3 +29,9 @@ The selected architecture profile affects project structure and dependency enfor
 - Fewer modules do not justify ad-hoc navigation, inappropriate persistence, unsafe state handling, or weaker concurrency guarantees.
 - Modularization does not automatically create good architecture.
 - Simple Architecture is not a reduced-quality version of Modular Architecture.
+
+## References
+
+- [Simple profile](simple.md)
+- [Modular profile](modular.md)
+- [Dependency rules](dependency-rules.md)

@@ -2,9 +2,7 @@
 
 ## Description
 
-Dependency rules define which architectural components may depend on each other.
-
-They apply to both architecture profiles.
+These dependency boundaries apply to both architecture profiles. The diagrams show allowed and prohibited access.
 
 ## Rules
 
@@ -18,14 +16,12 @@ They apply to both architecture profiles.
 - Domain models must not depend on UI objects.
 - Dependency injection must not be used to bypass invalid dependency direction.
 - Avoid service-locator access from arbitrary classes.
-
-## Placement
-
-This guideline defines dependency behavior and does not create source files.
+- In the Modular profile, core modules must not import feature implementation modules to reach repository interfaces or models.
+- Keep implementation construction at the composition root or in module-owned bindings/factories.
 
 ## Code
 
-Allowed:
+### Allowed
 
 ```text
 UI
@@ -40,7 +36,7 @@ Repository implementation
  └──► Remote data source
 ```
 
-Not allowed:
+### Prohibited
 
 ```text
 ViewModel ──► DAO
@@ -54,3 +50,9 @@ Domain Model ──► Android View
 - DI does not make an invalid dependency valid.
 - A DTO or entity with identical fields to a domain model is still a boundary-specific model.
 - Convenience imports across boundaries often become permanent coupling.
+
+## References
+
+- [Modular profile](modular.md)
+- [Repository](../data/repository.md)
+- [Dependency injection](../di/dependency-injection.md)
