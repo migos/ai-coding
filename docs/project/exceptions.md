@@ -1,0 +1,54 @@
+# Project Exceptions
+
+## Description
+
+This file records intentional deviations from the active architecture profile or shared engineering guidelines.
+
+Exceptions should be rare, scoped, and explicit.
+
+## Rules
+
+- Every exception must state its scope.
+- Every exception must include a reason.
+- Prefer temporary exceptions with a cleanup condition when possible.
+- Do not use exceptions to legitimize accidental inconsistency.
+- An exception overrides only the stated rule and scope.
+
+## Placement
+
+```text
+docs/project/
+└── exceptions.md
+```
+
+This is a documentation file and does not create Android source code.
+
+## Code
+
+Example exception:
+
+```md
+## Legacy integration
+
+Scope:
+
+`feature/<feature-name>`
+
+Exception:
+
+The presentation layer accesses a platform-bound SDK directly.
+
+Reason:
+
+The SDK requires Activity callbacks and cannot currently be isolated cleanly.
+
+Cleanup condition:
+
+Remove this exception when the integration is replaced.
+```
+
+## Gotchas
+
+- Exceptions without scope become accidental global rules.
+- Do not create an exception before checking whether the normal architecture can support the requirement.
+- Review and remove obsolete exceptions.
